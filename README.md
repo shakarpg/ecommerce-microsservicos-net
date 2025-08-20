@@ -32,7 +32,7 @@ Foi projetado para mostrar domínio de **.NET, mensageria, segurança e conteine
 ---
 
 ## 👩‍💻 Sobre mim  
-Sou desenvolvedor(a) com foco em **Fullsatck**, apaixonado(a) por **projetos distribuídos, boas práticas e escalabilidade**.  
+Sou desenvolvedor(a) com foco em **Fullstack**, apaixonado(a) por **projetos distribuídos, boas práticas e escalabilidade**.  
 
 Este projeto é parte do meu portfólio no GitHub, onde busco mostrar **projetos práticos que resolvem problemas reais** e evidenciam minha capacidade de **entregar soluções completas** — do design à implementação.  
 
