@@ -1,0 +1,68 @@
+version: "3.9"
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_Strong_Password123
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P Your_Strong_Password123 -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  inventory.api:
+    build: ./services/inventory/Inventory.API
+    container_name: inventory.api
+    environment:
+      - ASPNETCORE_URLS=http://+:5001
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InventoryDb;User ID=sa;Password=Your_Strong_Password123;TrustServerCertificate=True;
+      - Jwt__Key=supersecretkey_supersecretkey_supersecret
+      - Jwt__Issuer=EcomIssuer
+      - Jwt__Audience=EcomAudience
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Queue=SaleConfirmedQueue
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  sales.api:
+    build: ./services/sales/Sales.API
+    container_name: sales.api
+    environment:
+      - ASPNETCORE_URLS=http://+:5002
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=SalesDb;User ID=sa;Password=Your_Strong_Password123;TrustServerCertificate=True;
+      - Jwt__Key=supersecretkey_supersecretkey_supersecret
+      - Jwt__Issuer=EcomIssuer
+      - Jwt__Audience=EcomAudience
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Queue=SaleConfirmedQueue
+      - Services__InventoryBaseUrl=http://gateway:8080/inventory
+    depends_on:
+      - sqlserver
+      - rabbitmq
+      - inventory.api
+
+  gateway:
+    build: ./gateway
+    container_name: api.gateway
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - Jwt__Key=supersecretkey_supersecretkey_supersecret
+      - Jwt__Issuer=EcomIssuer
+      - Jwt__Audience=EcomAudience
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sales.api
+      - inventory.api
